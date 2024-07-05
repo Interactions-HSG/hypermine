@@ -14,6 +14,7 @@ services:
       - "PATH=/config/.luarocks/bin:/lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     volumes:
       - ./minetest_server/:/config/.minetest
+      - ./hypermine/:/config/.minetest/mods/hypermine/
     ports:
       - 30000:30000/udp
       - 9090:9090
