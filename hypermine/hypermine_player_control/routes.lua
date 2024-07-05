@@ -55,6 +55,47 @@ hypermine.routes = {
         end,
       },
 
+      ["/player/velocity"] = {
+
+        GET = function(req, resp)
+          resp:statusCode(200)
+          resp:addHeader("Content-Type", "application/json")
+          local pos = hypermine.get_velocity()
+          resp:write(json.encode(pos))
+        end,
+
+        POST = function(req, resp)
+          local res_code = 200
+          local velocity = {}
+          -- JSON data send with curl contains escape characters
+          local body = string.gsub(req:receiveBody(),"\\","*")
+          local is_decoded, res_decode = pcall(json.decode, body)
+          if is_decoded then
+            if res_decode.velocity then
+              velocity = vector.new(res_decode.velocity)
+              local is_to_api, res_to_api = pcall(hypermine.add_velocity, velocity)
+              if is_to_api then
+                res_code = 200
+              else
+                res_code = 500
+                minetest.log("error", "Could not forward request to API")
+                minetest.log("error", dump(res_to_api))
+              end
+            else
+              res_code = 400
+              minetest.log("error", "This endpoint the velocity requires a field velocity. Got:\n")
+              minetest.log("error", body)
+            end
+          else
+            -- TODO make this something sensible
+            res_code = 422
+          end
+          resp:statusCode(res_code)
+          resp:addHeader("Content-Type", "application/json")
+          resp:write(json.encode(hypermine.get_pos()))
+        end,
+      },
+
       ["/player/name"] = {
 
         GET = function(req, resp)
