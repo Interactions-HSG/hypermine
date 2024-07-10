@@ -8,9 +8,14 @@ local function load_module(path)
 end
 
 local path = minetest.get_modpath(minetest.get_current_modname())
+load_module(path .. "/dispatcher.lua")
 load_module(path .. "/server.lua")
 
+local _dispatcher = hypermine.Dispatcher
+
+minetest.log("warning", dump(minetest.object_refs))
+
 minetest.register_globalstep(function(dtime)
-    -- give control to the server
-    coroutine.resume(hypermine.server_co)
+  -- give control to the coroutines
+  hypermine.Dispatcher.dispatch()
 end)

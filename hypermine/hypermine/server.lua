@@ -13,6 +13,8 @@ hypermine.server = Pegasus:new(
     }
 )
 
-hypermine.server_co = coroutine.create(function ()
+local server_co = coroutine.create(function ()
     hypermine.server:start(function () return false end)
 end)
+
+hypermine.Dispatcher.register_coroutine(server_co, "pegasus")
