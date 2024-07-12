@@ -52,7 +52,10 @@ Make sure that you have installed the necessary dependency in a version that mat
 eval `luarocks --lua-version=5.1 path`
 ```
 
-## Insights
+
+## Development
+
+### Insights
 
 - Movement of player with `/player/position` endpoint does not perform collision detection
 - Movement of player with `/player/move_to` endpoint is very clunky
@@ -67,4 +70,11 @@ eval `luarocks --lua-version=5.1 path`
     3. Since the HTTP API is not keypress based, and due to 1. and 2., the speed is reduced client-side between server-side
   - Conclusion:
     - If the assumptions are true, then this limits the mods features to applications that need a frequencies of single digit hertz
-  - This 
+
+### Log levels
+
+|level|usage|
+|-------|-----|
+|info   | logs facilitating server maintenance |
+|verbose| logs for sequence monitoring of the hypermine modpack |
+|trace  | logs that show intermediate results of functions in the hypermine modpack |

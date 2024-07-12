@@ -1,6 +1,8 @@
 local Router = require 'pegasus.plugins.router'
 local json = require 'cjson.safe'
 
+local _log_point = hypermine._log_prefix .. "." .. minetest.get_current_modname() .. "routes: "
+
 function hypermine._decode_body(body)
   -- JSON data send with curl contains escape characters
   -- It does not seem to work in a single statement. Not sure why.

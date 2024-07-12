@@ -1,5 +1,7 @@
 local Pegasus = require("pegasus")
 
+local _log_point = hypermine._log_prefix .. ".server: "
+
 hypermine.server = Pegasus:new(
     {
         port = '9090',
@@ -13,8 +15,9 @@ hypermine.server = Pegasus:new(
     }
 )
 
-local server_co = coroutine.create(function ()
+local _co_name = "Pegasus"
+local _co = coroutine.create(function ()
     hypermine.server:start(function () return false end)
 end)
 
-hypermine.Dispatcher.register_coroutine(server_co, "pegasus")
+hypermine.Dispatcher.register_coroutine(_co, _co_name)
