@@ -48,9 +48,9 @@ function hypermine.add_pos(pos_delta)
     local is_success, res = pcall(vector.add, pos_old, pos_delta)
     if is_success then
       -- same set_pos on player objects
-      -- player:move_to(res, true)
-      print(dump(player))
-      player:add_pos(pos_delta)
+      player:move_to(res, true)
+      -- print(dump(player))
+      -- player:add_pos(pos_delta)
     else
       minetest.log("error", tostring(res))
     end

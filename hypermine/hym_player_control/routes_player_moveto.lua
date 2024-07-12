@@ -28,10 +28,10 @@ hypermine.player_moveto.routes = {
       --   --   hypermine.player.get_pos
       --   --   -- vector.new(decode.location)
       --   -- )
-      -- else
-      --   minetest.log("error", "Hypermine: unable to extract location from request body")
-      --   -- TODO make this something sensible
-      --   res_code = 400
+      else
+        minetest.log("error", "Hypermine: unable to extract location from request body")
+        -- TODO make this something sensible
+        res_code = 400
       end
 
 
