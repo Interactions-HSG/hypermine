@@ -1,4 +1,0 @@
-# Typically, the hotbar is one row of your full inventory.
-# Will attempt to show specified number of *whole* rows containing up to a maximum of 32 slots
-# May result in less than 32 slots shown if minimum whole multiple of hotbar slots doesn't line up with 32.
-k_wider_hotbar.number_of_rows (Number of inventory rows to show) int 4  
