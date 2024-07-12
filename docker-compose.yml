@@ -8,14 +8,19 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - "CLI_ARGS=--gameid void --world /config/.minetest/worlds/singlenode_void --config /config/.minetest/minetest.conf" #optional
+      - "CLI_ARGS=--gameid devtest --world /config/.minetest/worlds/test --config /config/.minetest/minetest.conf --info" #optional
       - "LUA_PATH=/usr/share/lua/5.1/?.lua;./?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/lib/lua/5.1/?.lua;/usr/local/lib/lua/5.1/?/init.lua;/usr/share/lua/5.1/?/init.lua;/usr/share/lua/common/?.lua;/usr/share/lua/common/?/init.lua;/config/.luarocks/share/lua/5.1/?.lua;/config/.luarocks/share/lua/5.1/?/init.lua"
       - "LUA_CPATH=./?.so;/usr/local/lib/lua/5.1/?.so;/usr/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so;/config/.luarocks/lib/lua/5.1/?.so"
       - "PATH=/config/.luarocks/bin:/lsiopy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     volumes:
+      - minetest_mods:/config/.minetest/mods
       - ./minetest_server/:/config/.minetest
       - ./hypermine/:/config/.minetest/mods/hypermine/
     ports:
       - 30000:30000/udp
       - 9090:9090
     restart: unless-stopped
+
+volumes:
+  # needed to merge mods in the image with mods from the host
+  minetest_mods:
