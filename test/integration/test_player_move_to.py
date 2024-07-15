@@ -1,4 +1,5 @@
 import requests
+from time import sleep
 
 TIMEOUT = 3
 
@@ -51,10 +52,33 @@ def test_player_move_to_post_success():
         }
     }
     t_out = _player_move_to_post(data)
-    expected_response_code = 200
+    expected_response_code = 202
     assert t_out.status_code == expected_response_code, f"was expecting status code {expected_response_code}, got {t_out.status_code}"
 
+    prog_url_prefix = "http://localhost:9090/api/v1"
+    prog_headers = {"Content-Type": "application/json"}
+    # data = {"name" : "agent0"}
+    
+    expected_response_code = 200
+    is_timeout_reached = False
+    task_duration = 0
 
+    while True:
+        prog_response = requests.get(
+            f"{prog_url_prefix}{t_out.headers["Location"]}",
+            headers=name_headers
+        )
+        assert 200 == prog_response.status_code, f"was expecting status code {expected_response_code}, got {t_out.status_code}"
+        if prog_response.json()["status"] == "COMPLETED":
+            break
+        if 20 < task_duration:
+            is_timeout_reached = True
+            break
+        sleep(1)
+        task_duration += 1
+    
+    assert is_timeout_reached, "Reached timeout without completion"
+    
 def run_tests():
-    # test_player_move_to_post_fail()
+    test_player_move_to_post_fail()
     test_player_move_to_post_success()

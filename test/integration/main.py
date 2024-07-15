@@ -6,9 +6,9 @@ import test_hym_player_control
 import test_player_move_to
 
 p_minetest_server = Popen(["docker", "compose", "up"])
-p_minetest_client = Popen(["minetest", "--go", "--address", "172.19.0.2", "--name", "agent0"])
+p_minetest_client = Popen(["minetest", "--go", "--address", "172.18.0.2", "--name", "agent0"])
 # allow client to connect
-sleep(2)
+sleep(5)
 
 tests = {
     "hym_player_control": test_hym_player_control.run_tests,
