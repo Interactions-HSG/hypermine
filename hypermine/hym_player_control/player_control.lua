@@ -7,44 +7,46 @@ hypermine.player = {
   move_to = {}
 }
 
-local _registered_tasks = {
-  --[[
-  [1] = {
-    player = "agent0"
-    status = "SUBMITTED", -- or ,INPROGESS,COMPLETED
-    distance = vector.zero
-  }
-  --]]
-}
+local _registered_tasks = {}
 local _task_counter = 0
 
 function hypermine.get_task(task)
   return _registered_tasks[task]
 end
 
-function hypermine.get_task_update(ntask)
-  _registered_tasks.player = hypermine.player.name
-  if player.move_to then
-    _registered_tasks[ntask].status = "INPROGRESS"
-    _registered_tasks[ntask].distance = vector.distance(
-      hypermine.get_pos(),
-      hypermine.player_moveto
-    )
+function hypermine.get_task_update(task_id)
+  minetest.log("info", _log_point .. "get update on task with id " .. task_id)
+  local _toi = _registered_tasks[task_id]
+  if _toi then
+    if next(hypermine.player.move_to) then
+      _toi.status = "INPROGRESS"
+      _toi.distance = vector.distance(
+        hypermine.get_pos(),
+        hypermine.player.move_to
+      )
+    else
+      _toi.status = "COMPLETED"
+      _toi.distance = {}
+    end
   else
-    _registered_tasks[ntask].status = "COMPLETED"
-    _registered_tasks[ntask].distance = {}
+    minetest.log("error", _log_point .. "unknown task: " .. task_id)
   end
+
+  return _toi
 end
 
 function hypermine.register_task()
   _task_counter = 1 + _task_counter
-  _registered_tasks[_task_counter] = {
+  local _task_id = hypermine.player.name .."-".. _task_counter
+  minetest.log("info", _log_point .. "registering task with id " .. _task_id)
+  _registered_tasks[hypermine.player.name .."-".. _task_counter] = {
     player = hypermine.player.name,
     status = "SUBMITTED",
     distance = {}
   }
+  minetest.log("verbose", _log_point .. "registred task " .. dump(_registered_tasks[_task_id]))
 
-  return _task_counter
+  return _task_id
 end
 
 function hypermine.set_player(player_name)
@@ -140,6 +142,7 @@ local function _move_to()
   while true do
     dist = vector.distance(hypermine.player.move_to, hypermine.get_pos())
     if math.abs(dist) < tolerance then
+      hypermine.player.move_to = {}
       break
     end
     vec_dir = vector.direction(hypermine.player.object:get_pos(), hypermine.player.move_to)
@@ -159,8 +162,8 @@ local function _move_to()
 end
 
 function hypermine.move_to(pos)
-  minetest.log("info", _log_point .. "creating coroutine "  .. _co_name)
   local _co_name = "move_to"
+  minetest.log("info", _log_point .. "creating coroutine "  .. _co_name)
   hypermine.look_at_pos(pos)
   hypermine.player.move_to = vector.new(pos)
   

@@ -159,7 +159,10 @@ hypermine.routes = {
 }
 
 for k,v in pairs(hypermine.player_moveto.routes) do hypermine.routes[k] = v end
+for k,v in pairs(hypermine.player_moveto_status.routes) do hypermine.routes[k] = v end
 for k,v in pairs(hypermine.player_name.routes) do hypermine.routes[k] = v end
+
+minetest.log("verbose", _log_point .. dump(hypermine.routes))
 
 hypermine.server = hypermine.server or {}
 hypermine.server.plugins = {
