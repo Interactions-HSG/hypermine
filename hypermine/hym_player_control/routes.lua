@@ -1,37 +1,47 @@
 local Router = require 'pegasus.plugins.router'
 local json = require 'cjson.safe'
 
-local _log_point = hypermine._log_prefix .. "." .. minetest.get_current_modname() .. "routes: "
+--TODO: ideally routes should not call the minetest API
+local _log_point = hypermine._log_prefix .. "." .. minetest.get_current_modname() .. ".routes: "
 
 function hypermine._decode_body(body)
   -- JSON data send with curl contains escape characters
-  -- It does not seem to work in a single statement. Not sure why.
   local clean_string = string.gsub(body, "\\","*")
   local decoded = json.decode(clean_string)
-  minetest.log("info", "hypermine: decoded body" .. dump(decoded))
+  minetest.log("verbose", _log_point .. "decoded body" .. dump(decoded))
   return decoded
 end
 
+--TODO: ideally routes should not call the minetest API
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/player_control.lua")
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/routes_player_moveto.lua")
+dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/routes_player_name.lua")
+
+local _decoded = {}
+
 -- example data for the "router" plugin
 hypermine.routes = {
-      -- router-level preFunction runs before the method prefunction and callback
-      preFunction = function(req, resp)
-        local stop = false
-        local headers = req:headers()
-        local accept = (headers.accept or "*/*"):lower()
-        if not accept:find("application/json", 1, true) and
-           not accept:find("application/*", 1, true) and
-           not accept:find("*/*", 1, true) then
 
-          resp:writeDefaultErrorMessage(406, "This API only produces 'application/json'")
-          stop = true
-        end
-        return stop
-      end,
-      
       ["/player/position"] = {
+
+        -- router-level preFunction runs before the method prefunction and callback
+        preFunction = function(req, resp)
+          local stop = false
+          minetest.log("info", _log_point .. "received on " .. req.routerPath)
+          _decoded = hypermine._decode_body(req:receiveBody())
+          --TODO: ideally routes should not call the minetest API
+          if not minetest.get_player_by_name(hypermine.player.name) then
+            stop = true
+            local err =  _log_point .. "player with name \"" .. hypermine.player.name .. "\" is invalid"
+            minetest.log("error", err)
+            resp:writeDefaultErrorMessage(404, err)
+          end
+          return stop
+        end,
+
+        postFunction = function(req, resp)
+          _decoded = {}
+        end,
 
         GET = function(req, resp)
           resp:statusCode(200)
@@ -43,17 +53,16 @@ hypermine.routes = {
         POST = function(req, resp)
           local res_code = 200
           local pos = {}
-          -- JSON data send with curl contains escape characters
-          local body = string.gsub(req:receiveBody(),"\\","*")
-          local is_decoded, res_decode = pcall(json.decode, body)
-          if is_decoded then
-            pos = vector.new(res_decode.position)
+
+          if _decoded.position then
+            pos = vector.new(_decoded.position)
+
             local is_to_api, res_to_api = pcall(hypermine.add_pos, pos)
             if is_to_api then
               res_code = 200
             else
               res_code = 500
-              minetest.log("error", "Could not forward request to API")
+              minetest.log("error", _log_point .. "could not forward request to API")
               minetest.log("error", dump(res_to_api))
             end
           else
@@ -62,24 +71,32 @@ hypermine.routes = {
           end
           resp:statusCode(res_code)
           resp:addHeader("Content-Type", "application/json")
-          resp:write(json.encode(hypermine.get_pos()))
+          
+          if 200 == res.code then 
+            resp:write(json.encode(hypermine.get_pos()))
+          elseif 200 < res_code then
+            resp:write(json.encode({}))
+          end
         end,
 
         PUT = function(req, resp)
-          local res_code = 200
+          local res_code = 500
           local pos = {}
           -- JSON data send with curl contains escape characters
-          local body = string.gsub(req:receiveBody(),"\\","*")
-          local is_decoded, res_decode = pcall(json.decode, body)
-          if is_decoded then
-            pos = vector.new(res_decode.position)
-            local is_to_api, res_to_api = pcall(hypermine.player.object.set_pos,hypermine.player.object, pos)
-            if is_to_api then
-              res_code = 200
+          if _decoded.position then
+            pos = vector.new(_decoded.position)
+            if minetest.get_player_by_name(hypermine.player.name) then
+              local status, result = pcall(hypermine.player.object.set_pos, hypermine.player.object, pos)
+              if status then
+                res_code = 200
+              else
+                res_code = 500
+                minetest.log("error", _log_point .. "could not forward request to API")
+                minetest.log("error", dump(result))
+              end
             else
-              res_code = 500
-              minetest.log("error", "Could not forward request to API")
-              minetest.log("error", dump(res_to_api))
+              minetest.log("error", _log_point .. "")
+              res_code = 422
             end
           else
             -- TODO make this something sensible
@@ -87,7 +104,12 @@ hypermine.routes = {
           end
           resp:statusCode(res_code)
           resp:addHeader("Content-Type", "application/json")
-          resp:write(json.encode(hypermine.get_pos()))
+          
+          if 200 == res_code then 
+            resp:write(json.encode(hypermine.get_pos()))
+          else
+            resp:write(json.encode({}))
+          end
         end,
       },
 
@@ -132,40 +154,11 @@ hypermine.routes = {
         end,
       },
 
-      ["/player/name"] = {
 
-        GET = function(req, resp)
-          resp:statusCode(200)
-          resp:addHeader("Content-Type", "application/json")
-          resp:write(json.encode(hypermine.player.name))
-        end,
-
-        POST = function(req, resp)
-          local res_code = 200
-          local decoded = hypermine._decode_body(req:receiveBody())
-          if decoded.name then
-            local status, result = pcall(hypermine.set_player, decoded.name)
-            if status then
-              minetest.log("info", "Hypermine: took control over " .. hypermine.player.name)
-            else
-              minetest.log("error", "Hypermine: unable to take control over player ")
-              minetest.log("error", result)
-              res_code = 400
-            end
-          else
-            minetest.log("error", "Hypermine: unable to extract name from request body")
-            -- TODO make this something sensible
-            res_code = 400
-          end
-          
-          resp:statusCode(res_code)
-          resp:addHeader("Content-Type", "application/json")
-          resp:write(json.encode(hypermine.player.name))
-        end,
-      },
 }
 
 for k,v in pairs(hypermine.player_moveto.routes) do hypermine.routes[k] = v end
+for k,v in pairs(hypermine.player_name.routes) do hypermine.routes[k] = v end
 
 hypermine.server = hypermine.server or {}
 hypermine.server.plugins = {
