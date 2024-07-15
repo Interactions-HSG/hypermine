@@ -29,7 +29,7 @@ local function _protect(pos, trap_node)
   if _protect_node.node.name ~= _protect_node.type then
     -- nodes might be already covered by something, e.g. lava underground
     for _, type in pairs(hypermine.exploration.types_unprotected) do
-      minetest.log("trace", _log_point .. "covering trap node with " .. dump(_protect_node.type))
+      minetest.log("verbose", _log_point .. "covering trap node with " .. dump(_protect_node.type))
       minetest.swap_node(_protect_node.pos, { name = _protect_node.type})
     end
   end
@@ -47,7 +47,7 @@ minetest.register_abm({
   interval = 1.0,
   chance = 1,
   action = function(pos, node, active_object_count, active_object_count_wider)
-    minetest.log("trace", _log_point .. "ABM on " .. (dump(pos)))
+    minetest.log("verbose", _log_point .. "ABM on " .. (dump(pos)))
     local players = minetest.get_connected_players()
     _set_protect_node(pos)
     for _, player in ipairs(players) do

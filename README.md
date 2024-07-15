@@ -75,6 +75,5 @@ eval `luarocks --lua-version=5.1 path`
 
 |level|usage|
 |-------|-----|
-|info   | logs facilitating server maintenance |
-|verbose| logs for sequence monitoring of the hypermine modpack |
-|trace  | logs that show intermediate results of functions in the hypermine modpack |
+|info   | logs for sequence monitoring of the hypermine modpack |
+|verbose| logs that show intermediate results of functions in the hypermine modpack |

@@ -1,13 +1,11 @@
-local _log_point = hypermine._log_prefix .. "." .. minetest.get_current_modname() .. "player_control: "
+local _log_point = hypermine._log_prefix .. "." .. minetest.get_current_modname() .. ".player_control: "
 
 hypermine.player = {
-  name = "singlenode",
+  name = "",
   object = {},
   max_velocity = 4,
   move_to = {}
 }
-
-
 
 function hypermine.set_player(player_name)
   local player = minetest.get_player_by_name(player_name)
@@ -26,7 +24,7 @@ function hypermine.add_velocity(delta)
   if not player then
     minetest.log("error", _log_point .. "no player with name "  .. hypermine.player.name .. " found!")
   else
-    minetest.log("verbose", _log_point .. "changing velocity of " .. hypermine.player.name .. " by " .. tostring(delta))
+    minetest.log("info", _log_point .. "changing velocity of " .. hypermine.player.name .. " by " .. tostring(delta))
     -- same set_pos on player objects
     local is_to_minetest_success, result = pcall(player.add_velocity, player, delta)
     if not is_to_minetest_success then
@@ -36,7 +34,7 @@ function hypermine.add_velocity(delta)
 end
 
 function hypermine.add_pos(pos_delta)
-  minetest.log("verbose", "Received request to move " .. hypermine.player.name .. " by " .. tostring(pos_delta))
+  minetest.log("info", "Received request to move " .. hypermine.player.name .. " by " .. tostring(pos_delta))
   local player = minetest.get_player_by_name(hypermine.player.name)
   if not player then
     minetest.log("error", "No player with name "  .. hypermine.player.name .. " found!")
@@ -67,7 +65,12 @@ end
 function hypermine.get_pos()
   local pos = vector.zero()
   if hypermine.player then
-    pos = hypermine.player.object:get_pos()
+    local status, result = pcall(hypermine.player.object.get_pos, hypermine.player.object)
+    if status then
+      pos = result
+    else
+      minetest.log("error", _log_point .. "could not get position from player" .. hypermine.player.name)
+    end
   else
     minetest.log("error", _log_point .. "could not get player"  .. hypermine.player.name)
   end
@@ -75,7 +78,7 @@ function hypermine.get_pos()
 end
 
 function hypermine.look_at_pos(destination)
-  minetest.log("trace", _log_point .. dump(destination))
+  minetest.log("verbose", _log_point .. dump(destination))
 
   -- hypermine.get_pos() has some error handling
   local pos = hypermine.get_pos()
@@ -87,6 +90,7 @@ function hypermine.look_at_pos(destination)
 end
 
 local function _move_to()
+  minetest.log("verbose", _log_point .. "moving player.")
   local tolerance = 0.1
   local vec_dir = vector.zero()
   local vec_vel = vector.zero()
@@ -94,7 +98,7 @@ local function _move_to()
   local dist = vector.zero()
   
   while true do
-    dist = vector.distance(hypermine.player.move_to, hypermine.player.object:get_pos())
+    dist = vector.distance(hypermine.player.move_to, hypermine.get_pos())
     if math.abs(dist) < tolerance then
       break
     end
@@ -115,8 +119,8 @@ local function _move_to()
 end
 
 function hypermine.move_to(pos)
+  minetest.log("info", _log_point .. "creating coroutine "  .. _co_name)
   local _co_name = "move_to"
-  minetest.log("verbose", _log_point .. "creating co"  .. _co_name)
   hypermine.look_at_pos(pos)
   hypermine.player.move_to = vector.new(pos)
   
