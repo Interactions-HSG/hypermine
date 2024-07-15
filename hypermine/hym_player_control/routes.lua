@@ -14,6 +14,7 @@ end
 
 --TODO: ideally routes should not call the minetest API
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/player_control.lua")
+dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/routes_player_moveto_status.lua")
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/routes_player_moveto.lua")
 dofile(minetest.get_modpath(minetest.get_current_modname()) .. "/routes_player_name.lua")
 

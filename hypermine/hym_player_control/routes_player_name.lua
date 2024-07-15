@@ -3,7 +3,7 @@ local json = require 'cjson.safe'
 hypermine.player_name = {}
 hypermine.player_name.routes = {}
 
-local _log_point = hypermine._log_prefix .. "." .. minetest.get_current_modname() .. "routes_player_name: "
+local _log_point = hypermine._log_prefix .. "." .. minetest.get_current_modname() .. ".routes_player_name: "
 local _decoded = {}
 
 hypermine.player_name.routes = {

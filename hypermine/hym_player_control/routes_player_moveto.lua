@@ -34,12 +34,14 @@ hypermine.player_moveto.routes = {
       local stop = false
       local err = ""
       local res_code = 500
+      local _ntask = 0
 
       if _decoded.location then
         --TODO This function needs to know what happened in order to propagate to user
         local status, result = pcall(hypermine.move_to, _decoded.location)
         if status then
-          res_code = 200
+          res_code = 202
+          _ntask = hypermine.register_task()
         else
           stop = true
           err = "failed to set desination from request body"
@@ -58,6 +60,7 @@ hypermine.player_moveto.routes = {
       else
         resp:statusCode(res_code)
         resp:addHeader("Content-Type", "application/json")
+        resp:location("/player/move_to/" .. _ntask)
         resp:write(json.encode(hypermine.get_pos()))
       end
     return stop
